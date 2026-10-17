@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aplikasi Ujian - SMP Negeri 4 Tanggul</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #243f62;
+      background: linear-gradient(
+        to top,
+        #eaf2fc 0%,
+        #f4f7fc 50%,
+        #ffffff 100%
+      );
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      padding: 30px 24px;
+      background: #fff;
+      border: 1px solid #dfe7f0;
+      border-radius: 16px;
+      box-shadow: 0 10px 35px rgba(36, 63, 98, .08);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #315f9f, #78a7db);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 23px;
+    }
+
+    p {
+      color: #718096;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .status {
+      margin: 20px 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f1f6fd;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .links {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .links a {
+      display: block;
+      padding: 12px;
+      border: 1px solid #d8e4f3;
+      border-radius: 8px;
+      color: #315f9f;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .links a:hover {
+      background: #f1f6fd;
+    }
+
+    .note {
+      margin-top: 18px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <h1>Aplikasi Ujian</h1>
+    <p>SMP Negeri 4 Tanggul</p>
+
+    <div class="status" id="status">
+      Menyiapkan aplikasi untuk perangkat Anda...
+    </div>
+
+    <div class="links">
+      <a id="linkPC" href="#">
+        Buka Aplikasi melalui Komputer
+      </a>
+
+      <a id="linkHP" href="#">
+        Buka Aplikasi melalui HP
+      </a>
+    </div>
+
+    <p class="note">
+      Jika aplikasi tidak terbuka otomatis, pilih tautan
+      yang sesuai dengan perangkat Anda.
+    </p>
+  </main>
+
+  <script>
+    // Link deployment asli untuk komputer.
+    const linkPC =
+      "https://script.google.com/macros/s/AKfycbzODZAVFwwYZKF5MVlZf8u7bJjWzIpOuQdlJhgeICLiINE5bMIl37w6C0elBcWGAXeQ/exec";
+
+    // Link alternatif /a/*/ untuk HP.
+    const linkHP =
+      "https://script.google.com/a/*/macros/s/AKfycbzODZAVFwwYZKF5MVlZf8u7bJjWzIpOuQdlJhgeICLiINE5bMIl37w6C0elBcWGAXeQ/exec";
+
+    const userAgent = navigator.userAgent || "";
+
+    const perangkatHP =
+      /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i
+        .test(userAgent) ||
+      (
+        (navigator.maxTouchPoints || 0) > 1 &&
+        window.matchMedia("(pointer: coarse)").matches
+      );
+
+    document.getElementById("linkPC").href = linkPC;
+    document.getElementById("linkHP").href = linkHP;
+
+    const tujuan = perangkatHP ? linkHP : linkPC;
+
+    document.getElementById("status").textContent =
+      "Perangkat terdeteksi: " +
+      (perangkatHP ? "HP" : "Komputer") +
+      ". Membuka Aplikasi Ujian...";
+
+    // Satu alamat akan mengarahkan pengguna secara otomatis.
+    window.setTimeout(function() {
+      window.location.replace(tujuan);
+    }, 1800);
+  </script>
+</body>
+</html>
