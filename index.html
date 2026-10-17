@@ -123,79 +123,154 @@
     </p>
   </main>
 
+
 <script>
   // Link deployment asli.
   const linkPC =
     "https://script.google.com/macros/s/AKfycbzODZAVFwwYZKF5MVlZf8u7bJjWzIpOuQdlJhgeICLiINE5bMIl37w6C0elBcWGAXeQ/exec";
 
-  // Link alternatif yang sudah Anda uji pada HP.
+  // Link alternatif dengan /a/*/.
   const linkHP =
     "https://script.google.com/a/*/macros/s/AKfycbzODZAVFwwYZKF5MVlZf8u7bJjWzIpOuQdlJhgeICLiINE5bMIl37w6C0elBcWGAXeQ/exec";
 
+  const KUNCI_PILIHAN = "ujian_link_preferensi_v1";
+  const KUNCI_COBA = "ujian_redirect_auto_coba_v3";
+
   const ua = navigator.userAgent || "";
 
-  const terdeteksiHP =
+  const perangkatHP =
     /Android|iPhone|iPad|iPod|Mobile|Windows Phone|Opera Mini|IEMobile/i
+      .test(ua) ||
+    (
+      (navigator.maxTouchPoints || 0) > 0 &&
+      window.matchMedia("(pointer: coarse)").matches &&
+      Math.min(
+        window.screen.width || window.innerWidth,
+        window.innerWidth || window.screen.width
+      ) <= 1200
+    );
+
+  const browserNonChrome =
+    /SamsungBrowser|MiuiBrowser|HuaweiBrowser|HeyTapBrowser|VivoBrowser|EdgA|EdgiOS|OPR\/|Opera|Firefox|FxiOS|UCBrowser|YaBrowser|DuckDuckGo|Brave|Vivaldi|MicroMessenger|FBAN|FBAV|Instagram|;\s*wv\)/i
       .test(ua);
 
-  const layarSentuh =
-    (navigator.maxTouchPoints || 0) > 0 ||
-    window.matchMedia("(pointer: coarse)").matches;
-
-  const lebarLayar = Math.min(
-    window.screen.width || window.innerWidth,
-    window.innerWidth || window.screen.width
-  );
-
-  // Jika browser HP menggunakan identitas desktop,
-  // layar sentuh yang relatif kecil tetap ditawarkan pilihan.
-  const perangkatHP =
-    terdeteksiHP || (layarSentuh && lebarLayar <= 1200);
+  const browserChrome =
+    /Chrome\/\d+|CriOS\/\d+/i.test(ua) &&
+    !browserNonChrome;
 
   const status = document.getElementById("status");
   const tombolPC = document.getElementById("linkPC");
   const tombolHP = document.getElementById("linkHP");
-
   const tombolChrome = document.getElementById("linkChrome");
 
-  tombolPC.href = linkPC;
-  tombolHP.href = linkHP;
-
-  // Tombol khusus Chrome tidak lagi diperlukan.
-  if (tombolChrome) {
-    tombolChrome.style.display = "none";
-  }
-
-  if (perangkatHP) {
-
-    // Jangan mengalihkan HP secara otomatis.
-    // Pengguna memilih link yang cocok dengan browsernya.
-    status.textContent =
-      "Pilih salah satu tautan untuk membuka Aplikasi Ujian. " +
-      "Jika satu tautan tidak berhasil, kembali ke halaman ini " +
-      "dan coba pilihan lainnya.";
-
-    tombolPC.style.display = "block";
-    tombolPC.textContent =
-      "Coba Link Asli";
-
-    tombolHP.style.display = "block";
-    tombolHP.textContent =
-      "Coba Link Alternatif untuk HP";
-
+  if (!status || !tombolPC || !tombolHP) {
+    console.error("Elemen halaman pengarah tidak ditemukan.");
   } else {
 
-    // Komputer tetap otomatis memakai link asli.
-    status.textContent =
-      "Perangkat komputer terdeteksi. Membuka Aplikasi Ujian...";
+    tombolPC.href = linkPC;
+    tombolHP.href = linkHP;
 
-    tombolPC.style.display = "none";
-    tombolHP.style.display = "none";
+    tombolPC.textContent = "Coba Link Asli";
+    tombolHP.textContent = "Coba Link Alternatif";
 
-    window.setTimeout(function() {
-      window.location.replace(linkPC);
-    }, 1200);
+    tombolPC.style.display = "block";
+    tombolHP.style.display = "block";
 
+    if (tombolChrome) {
+      tombolChrome.style.display = "none";
+    }
+
+    // Jika pengguna memilih link secara manual,
+    // simpan pilihannya untuk kunjungan berikutnya.
+    tombolPC.addEventListener("click", function() {
+      try {
+        localStorage.setItem(KUNCI_PILIHAN, "asli");
+      } catch (error) {
+        console.warn("Pilihan link tidak dapat disimpan.");
+      }
+    });
+
+    tombolHP.addEventListener("click", function() {
+      try {
+        localStorage.setItem(KUNCI_PILIHAN, "alternatif");
+      } catch (error) {
+        console.warn("Pilihan link tidak dapat disimpan.");
+      }
+    });
+
+    let pilihanTersimpan = "";
+
+    try {
+      pilihanTersimpan =
+        localStorage.getItem(KUNCI_PILIHAN) || "";
+    } catch (error) {
+      console.warn("Preferensi link tidak dapat dibaca.");
+    }
+
+    let baruDicoba = false;
+
+    // Hindari pengalihan berulang setelah kegagalan
+    // pada tab yang sama.
+    try {
+      const waktuTerakhir = Number(
+        sessionStorage.getItem(KUNCI_COBA) || 0
+      );
+
+      baruDicoba =
+        waktuTerakhir > 0 &&
+        Date.now() - waktuTerakhir < 30000;
+
+    } catch (error) {
+      console.warn("Status pengalihan tidak dapat dibaca.");
+    }
+
+    if (baruDicoba) {
+
+      status.textContent =
+        "Pengalihan otomatis baru saja dicoba. " +
+        "Jika aplikasi tidak terbuka, gunakan salah satu tautan di bawah.";
+
+    } else {
+
+      let tujuan;
+      let alasan;
+
+      if (pilihanTersimpan === "asli") {
+
+        tujuan = linkPC;
+        alasan = "menggunakan pilihan link asli yang tersimpan";
+
+      } else if (pilihanTersimpan === "alternatif") {
+
+        tujuan = linkHP;
+        alasan = "menggunakan pilihan link alternatif yang tersimpan";
+
+      } else if (perangkatHP && browserChrome) {
+
+        tujuan = linkHP;
+        alasan = "mencoba link alternatif berdasarkan deteksi browser";
+
+      } else {
+
+        tujuan = linkPC;
+        alasan = "mencoba link asli berdasarkan deteksi perangkat";
+
+      }
+
+      status.textContent =
+        "Mencoba membuka aplikasi otomatis (" + alasan + "). " +
+        "Jika tidak berhasil, kembali ke halaman ini dan pilih tautan lainnya.";
+
+      try {
+        sessionStorage.setItem(KUNCI_COBA, String(Date.now()));
+      } catch (error) {
+        // Pengalihan tetap dapat dilakukan tanpa sessionStorage.
+      }
+
+      window.setTimeout(function() {
+        window.location.href = tujuan;
+      }, 1500);
+    }
   }
 </script>
 
