@@ -132,15 +132,33 @@
     const linkHP =
       "https://script.google.com/a/*/macros/s/AKfycbzODZAVFwwYZKF5MVlZf8u7bJjWzIpOuQdlJhgeICLiINE5bMIl37w6C0elBcWGAXeQ/exec";
 
-    const userAgent = navigator.userAgent || "";
-
-    const perangkatHP =
-      /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i
-        .test(userAgent) ||
-      (
-        (navigator.maxTouchPoints || 0) > 1 &&
-        window.matchMedia("(pointer: coarse)").matches
-      );
+    
+const userAgent = navigator.userAgent || "";
+  
+  // Deteksi dari identitas browser.
+  const terdeteksiDariUA =
+    /Android|iPhone|iPad|iPod|Mobile|Windows Phone|Opera Mini|IEMobile/i
+      .test(userAgent);
+  
+  // Deteksi perangkat sentuh, termasuk browser yang meminta
+  // tampilan desktop pada HP.
+  const perangkatSentuh =
+    (navigator.maxTouchPoints || 0) > 0 ||
+    window.matchMedia("(pointer: coarse)").matches;
+  
+  // Gunakan ukuran layar perangkat, bukan hanya lebar halaman.
+  const lebarPerangkat =
+    Math.min(
+      window.screen.width || window.innerWidth,
+      window.innerWidth || window.screen.width
+    );
+  
+  // HP dan tablet dengan mode desktop tetap diarahkan
+  // ke link alternatif jika layarnya kecil dan mendukung sentuhan.
+  const perangkatHP =
+    terdeteksiDariUA ||
+    (perangkatSentuh && lebarPerangkat <= 1100);
+  
 
     document.getElementById("linkPC").href = linkPC;
     document.getElementById("linkHP").href = linkHP;
@@ -155,7 +173,7 @@
     // Satu alamat akan mengarahkan pengguna secara otomatis.
     window.setTimeout(function() {
       window.location.replace(tujuan);
-    }, 1800);
+    }, 3000);
   </script>
 </body>
 </html>
